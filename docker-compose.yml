@@ -1,0 +1,32 @@
+services:
+  grafana:
+    image: grafana/grafana-oss:latest
+
+    network_mode: host
+
+    ports:
+      - 3000:3000
+
+    volumes:
+      - ./data/grafana/grafana/:/var/lib/grafana/
+
+    user: "0"
+
+  python:
+    build:
+      context: .
+      dockerfile: python.Dockerfile
+
+    network_mode: host
+
+    ports:
+      - 9090:9090  # prometheus
+      - 8000:8000  # mkdocs
+
+    volumes:
+      - .:/app
+
+    working_dir: /app
+
+    command:
+      tox -e server

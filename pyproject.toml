@@ -1,0 +1,68 @@
+[build-system]
+requires = ["setuptools>=64", "setuptools_scm>=8"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "prometheus-virtual-metrics"
+description = ""
+requires-python = ">=3.8"
+dynamic = ["version"]
+
+authors = [
+  { name="Florian Scherf", email="mail@florianscherf.de" },
+]
+
+readme = "README.md"
+license = { file="LICENSE.txt" }
+
+dependencies = [
+  "aiohttp>=3.9,<4",
+  "simple-logging-setup",
+  "promql-parser",
+]
+
+
+[project.optional-dependencies]
+dev = [
+  "watchfiles",
+  "rlpython",
+]
+
+test = [
+  "coverage==7.6.1",
+  "pytest==8.3.3",
+  "rlpython",
+  "requests",
+]
+
+doc = [
+  "mkdocs==1.6.1",
+  "mkdocstrings[python]==0.26.1",
+  "mkdocs-material==9.5.40",
+]
+
+
+[project.entry-points.pytest11]
+prometheus_virtual_metrics = "pytest_plugin"
+
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools_scm]
+version_file = "prometheus_virtual_metrics/_version.py"
+
+[tool.setuptools.packages.find]
+include = ["prometheus_virtual_metrics*"]
+
+[tool.setuptools.package-data]
+"prometheus_virtual_metrics" = ["**"]
+
+[tool.setuptools.exclude-package-data]
+"*" = [
+  ".*",
+  "~*",
+  "*.swp",
+  "*.pyc",
+]
