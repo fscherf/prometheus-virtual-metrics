@@ -150,6 +150,7 @@ class PrometheusVirtualMetricsContext:
             start=None,
             end=None,
             request_series=False,
+            auth=None,
     ):
 
         data = {}
@@ -172,6 +173,7 @@ class PrometheusVirtualMetricsContext:
         return requests.post(
             url=url,
             data=data,
+            auth=auth,
         ).json()
 
     def request_label_names(
@@ -179,6 +181,7 @@ class PrometheusVirtualMetricsContext:
             query_string=None,
             start=None,
             end=None,
+            auth=None,
     ):
 
         data = {}
@@ -195,6 +198,7 @@ class PrometheusVirtualMetricsContext:
         return requests.post(
             url=self.get_url('/api/v1/labels'),
             data=data,
+            auth=auth,
         ).json()
 
     def request_label_values(
@@ -202,7 +206,8 @@ class PrometheusVirtualMetricsContext:
             label_name,
             query_string=None,
             start=None,
-            end=None
+            end=None,
+            auth=None,
     ):
 
         data = {}
@@ -219,9 +224,17 @@ class PrometheusVirtualMetricsContext:
         return requests.post(
             url=self.get_url(f'/api/v1/label/{label_name}/values'),
             data=data,
+            auth=auth,
         ).json()
 
-    def request_instant(self, query_string, time, step=15):
+    def request_instant(
+            self,
+            query_string,
+            time,
+            step=15,
+            auth=None,
+    ):
+
         return requests.post(
             self.get_url('/api/v1/query'),
             data={
@@ -229,9 +242,18 @@ class PrometheusVirtualMetricsContext:
                 'time': time.timestamp(),
                 'step': step,
             },
+            auth=auth,
         ).json()
 
-    def request_range(self, query_string, start, end, step=15):
+    def request_range(
+            self,
+            query_string,
+            start,
+            end,
+            step=15,
+            auth=None,
+    ):
+
         return requests.post(
             self.get_url('/api/v1/query_range'),
             data={
@@ -240,6 +262,7 @@ class PrometheusVirtualMetricsContext:
                 'end': end.timestamp(),
                 'step': step,
             },
+            auth=auth,
         ).json()
 
 

@@ -6,6 +6,7 @@ import logging
 from multidict import CIMultiDict
 from aiohttp import web
 
+from prometheus_virtual_metrics.exceptions import ForbiddenError
 from prometheus_virtual_metrics.request import PrometheusRequest
 from prometheus_virtual_metrics import default_settings
 from prometheus_virtual_metrics import constants
@@ -249,6 +250,16 @@ class PrometheusVirtualMetricsServer:
 
             # send response
             return web.json_response(prometheus_response.to_dict())
+
+        except ForbiddenError as exception:
+            return web.json_response(
+                {
+                    'status': 'error',
+                    'errorType': 'HTTP',
+                    'error': repr(exception),
+                },
+                status=401,
+            )
 
         except Exception as exception:
             self.logger.exception(
