@@ -1,4 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
+from time import perf_counter
 import asyncio
 import logging
 
@@ -141,6 +142,9 @@ class PrometheusVirtualMetricsServer:
     # prometheus HTTP API #####################################################
     async def handle_prometheus_request(self, http_request):
         try:
+            start_time = perf_counter()
+            request_type = ''
+            data_point_type = ''
 
             # parse endpoint path
             path = [
@@ -172,6 +176,8 @@ class PrometheusVirtualMetricsServer:
             # /api/v1/query
             if path[0] == 'query':
                 hook_name = 'on_instant_query_request'
+                request_type = 'instant'
+                data_point_type = 'samples'
 
                 prometheus_response = PrometheusVectorResponse(
                     request=prometheus_request,
@@ -180,6 +186,8 @@ class PrometheusVirtualMetricsServer:
             # /api/v1/query_range
             elif path[0] == 'query_range':
                 hook_name = 'on_range_query_request'
+                request_type = 'range'
+                data_point_type = 'samples'
 
                 prometheus_response = PrometheusMatrixResponse(
                     request=prometheus_request,
@@ -188,6 +196,8 @@ class PrometheusVirtualMetricsServer:
             # /api/v1/labels
             elif path[0] == 'labels':
                 hook_name = 'on_label_names_request'
+                request_type = 'label names'
+                data_point_type = 'values'
 
                 prometheus_response = PrometheusDataResponse(
                     request=prometheus_request,
@@ -202,6 +212,9 @@ class PrometheusVirtualMetricsServer:
                 else:
                     hook_name = 'on_label_values_request'
 
+                request_type = 'label values'
+                data_point_type = 'values'
+
                 prometheus_response = PrometheusDataResponse(
                     request=prometheus_request,
                 )
@@ -209,6 +222,8 @@ class PrometheusVirtualMetricsServer:
             # /api/v1/series
             elif path[0] == 'series':
                 hook_name = 'on_metric_names_request'
+                request_type = 'metrics names'
+                data_point_type = 'values'
 
                 prometheus_response = PrometheusSeriesResponse(
                     request=prometheus_request,
@@ -221,6 +236,19 @@ class PrometheusVirtualMetricsServer:
                     'request': prometheus_request,
                     'response': prometheus_response,
                 },
+            )
+
+            # log response
+            end_time = perf_counter()
+
+            self.logger.info(
+                'handled %s request in %s, returning %s %s [query=%s, client=%s]',  # NOQA
+                request_type,
+                f'{(end_time - start_time) * 1000:.3f}ms',
+                prometheus_response.result_count,
+                data_point_type,
+                repr(prometheus_request.query_string),
+                http_request.remote,
             )
 
             # send response

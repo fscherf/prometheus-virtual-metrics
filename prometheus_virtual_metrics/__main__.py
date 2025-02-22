@@ -70,6 +70,7 @@ if __name__ == '__main__':
                 'PORT',
                 default_settings.PORT,
             ),
+            access_log=None,
         )
 
     except (OSError, socket.gaierror) as exception:
