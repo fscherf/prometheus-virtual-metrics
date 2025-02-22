@@ -20,6 +20,7 @@ dependencies = [
   "aiohttp>=3.9,<4",
   "simple-logging-setup",
   "promql-parser",
+  "rlpython",
 ]
 
 
