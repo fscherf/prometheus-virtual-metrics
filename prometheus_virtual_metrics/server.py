@@ -1,6 +1,7 @@
 from concurrent.futures import ThreadPoolExecutor
 import logging
 
+from multidict import CIMultiDict
 from aiohttp import web
 
 from prometheus_virtual_metrics.request import PrometheusRequest
@@ -90,10 +91,10 @@ class PrometheusVirtualMetricsServer:
             # parse prometheus request
             prometheus_request = PrometheusRequest(
                 server=self,
-                http_headers=dict(http_request.headers),
+                http_headers=CIMultiDict(http_request.headers),
+                http_query=CIMultiDict(http_request.query),
+                http_post_data=CIMultiDict(await http_request.post()),
                 http_path=http_request.path,
-                http_post_data=dict(await http_request.post()),
-                http_query=dict(http_request.query),
                 path=path,
             )
 
