@@ -157,7 +157,7 @@ class PrometheusVirtualMetricsServer:
             )
 
             # send response
-            return prometheus_response.to_http_response()
+            return web.json_response(prometheus_response.to_dict())
 
         except Exception as exception:
             self.logger.exception(

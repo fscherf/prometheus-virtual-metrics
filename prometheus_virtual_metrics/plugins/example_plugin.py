@@ -10,15 +10,15 @@ class ExamplePlugin:
         if not request.query.name_matches(self.METRIC_NAME):
             return
 
-        response.add_values([
+        response.add_value(
             self.METRIC_NAME,
-        ])
+        )
 
     def on_label_names_request(self, request, response):
         if not request.query.name_matches(self.METRIC_NAME):
             return
 
-        response.add_values([
+        response.add_value([
             'type',
             'amplitude',
         ])
@@ -28,7 +28,7 @@ class ExamplePlugin:
             return
 
         if request.label_name == 'type':
-            response.add_values([
+            response.add_value([
                 'sine',
                 'cosine',
                 'square',
@@ -36,7 +36,7 @@ class ExamplePlugin:
             ])
 
         elif request.label_name == 'amplitude':
-            response.add_values([
+            response.add_value([
                 '1',
                 '5',
                 '10',
