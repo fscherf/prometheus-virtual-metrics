@@ -42,7 +42,7 @@ class ExamplePlugin:
                 '10',
             ])
 
-    def on_query_range_request(self, request, response):
+    def on_range_query_request(self, request, response):
         if not request.query.name_matches(self.METRIC_NAME):
             return
 

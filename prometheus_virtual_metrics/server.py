@@ -1,4 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
+import asyncio
 import logging
 
 from multidict import CIMultiDict
@@ -6,16 +7,13 @@ from aiohttp import web
 
 from prometheus_virtual_metrics.request import PrometheusRequest
 from prometheus_virtual_metrics import default_settings
+from prometheus_virtual_metrics import constants
 
 from prometheus_virtual_metrics.responses import (
     PrometheusVectorResponse,
     PrometheusMatrixResponse,
     PrometheusSeriesResponse,
     PrometheusDataResponse,
-)
-
-from prometheus_virtual_metrics.plugin_manager import (
-    PrometheusVirtualMetricsPluginManager,
 )
 
 default_logger = logging.getLogger('prometheus-virtual-metrics')
@@ -50,28 +48,97 @@ class PrometheusVirtualMetricsServer:
         self.aiohttp_app.on_shutdown.append(self.on_shutdown)
 
         # setup plugins
-        self.plugin_manager = PrometheusVirtualMetricsPluginManager(
-            server=self,
-        )
+        self._plugin_hooks = {}
+
+        self._discover_plugin_hooks()
 
     @property
     def loop(self):
         return self.aiohttp_app.loop
 
     async def on_startup(self, app):
-        await self.plugin_manager.run_hook(
+        await self._run_plugin_hook(
             hook_name='on_startup',
-            hook_args=(self, ),
+            hook_kwargs={
+                'server': self,
+            },
         )
 
     async def on_shutdown(self, app):
-        await self.plugin_manager.run_hook(
-            hook_name='on_shutdown',
-            hook_args=(self, ),
+        try:
+            await self._run_plugin_hook(
+                hook_name='on_shutdown',
+                hook_kwargs={
+                    'server': self,
+                },
+            )
+
+        finally:
+            self.executor.shutdown()
+
+    # plugin management #######################################################
+    def _discover_plugin_hooks(self):
+        self.logger.debug('discovering plugin hooks')
+
+        plugins = getattr(
+            self.settings,
+            'PLUGINS',
+            default_settings.PLUGINS,
         )
 
-        self.executor.shutdown()
+        for hook_name in constants.PLUGIN_HOOK_NAMES:
+            self.logger.debug("searching for '%s' hooks", hook_name)
 
+            self._plugin_hooks[hook_name] = []
+
+            for plugin in plugins:
+                if not hasattr(plugin, hook_name):
+                    continue
+
+                hook = getattr(plugin, hook_name)
+                is_async = asyncio.iscoroutinefunction(hook)
+
+                self.logger.debug(
+                    '%s %s hook in %s found',
+                    'async' if is_async else 'sync',
+                    hook_name,
+                    plugin,
+                )
+
+                self._plugin_hooks[hook_name].append(
+                    (is_async, hook, )
+                )
+
+    async def _run_plugin_hook(
+            self,
+            hook_name,
+            hook_args=None,
+            hook_kwargs=None,
+    ):
+
+        hook_args = hook_args or tuple()
+        hook_kwargs = hook_kwargs or dict()
+
+        self.logger.debug(
+            'running plugin hook %s with %s %s',
+            hook_name,
+            hook_args,
+            hook_kwargs,
+        )
+
+        assert hook_name in constants.PLUGIN_HOOK_NAMES, f'unknown hook name: {hook_name}'  # NOQA
+
+        for is_async, hook in self._plugin_hooks[hook_name]:
+            if is_async:
+                await hook(*hook_args, **hook_kwargs)
+
+            else:
+                await self.loop.run_in_executor(
+                    self.executor,
+                    lambda: hook(*hook_args, **hook_kwargs),
+                )
+
+    # prometheus HTTP API #####################################################
     async def handle_prometheus_request(self, http_request):
         try:
 
@@ -104,7 +171,7 @@ class PrometheusVirtualMetricsServer:
 
             # /api/v1/query
             if path[0] == 'query':
-                hook_name = 'on_query_request'
+                hook_name = 'on_instant_query_request'
 
                 prometheus_response = PrometheusVectorResponse(
                     request=prometheus_request,
@@ -112,7 +179,7 @@ class PrometheusVirtualMetricsServer:
 
             # /api/v1/query_range
             elif path[0] == 'query_range':
-                hook_name = 'on_query_range_request'
+                hook_name = 'on_range_query_request'
 
                 prometheus_response = PrometheusMatrixResponse(
                     request=prometheus_request,
@@ -148,12 +215,12 @@ class PrometheusVirtualMetricsServer:
                 )
 
             # run plugin hooks
-            await self.plugin_manager.run_hook(
+            await self._run_plugin_hook(
                 hook_name=hook_name,
-                hook_args=(
-                    prometheus_request,
-                    prometheus_response,
-                ),
+                hook_kwargs={
+                    'request': prometheus_request,
+                    'response': prometheus_response,
+                },
             )
 
             # send response
