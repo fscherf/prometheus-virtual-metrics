@@ -53,10 +53,6 @@ class PrometheusVirtualMetricsServer:
 
         self._discover_plugin_hooks()
 
-    @property
-    def loop(self):
-        return self.aiohttp_app.loop
-
     async def on_startup(self, app):
         await self._run_plugin_hook(
             hook_name='on_startup',
@@ -134,7 +130,7 @@ class PrometheusVirtualMetricsServer:
                 await hook(*hook_args, **hook_kwargs)
 
             else:
-                await self.loop.run_in_executor(
+                await asyncio.get_event_loop().run_in_executor(
                     self.executor,
                     lambda: hook(*hook_args, **hook_kwargs),
                 )
