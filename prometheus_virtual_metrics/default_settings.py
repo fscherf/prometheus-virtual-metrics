@@ -1,4 +1,4 @@
-from prometheus_virtual_metrics.plugins.example_plugin import ExamplePlugin
+from prometheus_virtual_metrics.plugins import ExamplePlugin
 
 LOG_LEVEL = 'info'
 SETUP_LOGGING = True

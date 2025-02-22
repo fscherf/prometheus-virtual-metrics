@@ -2,8 +2,6 @@ import math
 
 
 class ExamplePlugin:
-    # FIXME: add docs
-
     METRIC_NAME = 'prometheus_virtual_metrics_example_metric'
 
     def on_metric_names_request(self, request, response):
