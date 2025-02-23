@@ -144,14 +144,101 @@ class PrometheusVirtualMetricsContext:
 
         return f'http://{host}:{port}{path}'
 
-    def query_range(self, query_string, start, end):
+    def request_metric_names(
+            self,
+            query_string=None,
+            start=None,
+            end=None,
+            request_series=False,
+    ):
+
+        data = {}
+
+        if query_string is not None:
+            data['query'] = query_string
+
+        if start is not None:
+            data['start'] = start
+
+        if end is not None:
+            data['end'] = end
+
+        if request_series:
+            url = self.get_url('/api/v1/series')
+
+        else:
+            url = self.get_url('/api/v1/label/__name__/')
+
+        return requests.post(
+            url=url,
+            data=data,
+        ).json()
+
+    def request_label_names(
+            self,
+            query_string=None,
+            start=None,
+            end=None,
+    ):
+
+        data = {}
+
+        if query_string is not None:
+            data['query'] = query_string
+
+        if start is not None:
+            data['start'] = start
+
+        if end is not None:
+            data['end'] = end
+
+        return requests.post(
+            url=self.get_url('/api/v1/labels'),
+            data=data,
+        ).json()
+
+    def request_label_values(
+            self,
+            label_name,
+            query_string=None,
+            start=None,
+            end=None
+    ):
+
+        data = {}
+
+        if query_string is not None:
+            data['query'] = query_string
+
+        if start is not None:
+            data['start'] = start
+
+        if end is not None:
+            data['end'] = end
+
+        return requests.post(
+            url=self.get_url(f'/api/v1/label/{label_name}/values'),
+            data=data,
+        ).json()
+
+    def request_instant(self, query_string, time, step=15):
+        return requests.post(
+            self.get_url('/api/v1/query'),
+            data={
+                'query': query_string,
+                'time': time.timestamp(),
+                'step': step,
+            },
+        ).json()
+
+    def request_range(self, query_string, start, end, step=15):
         return requests.post(
             self.get_url('/api/v1/query_range'),
             data={
                 'query': query_string,
                 'start': start.timestamp(),
                 'end': end.timestamp(),
-                'step': 60,
+                'step': step,
             },
         ).json()
 
