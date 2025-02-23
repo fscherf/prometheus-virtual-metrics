@@ -15,6 +15,7 @@ class PrometheusRequest:
             http_path=None,
             path=None,
             query_string='',
+            time=None,
             start=None,
             end=None,
             step=None,
@@ -28,6 +29,7 @@ class PrometheusRequest:
         self.path = path or []
 
         self.query_string = query_string
+        self.time = time
         self.start = start
         self.end = end
         self.step = step
@@ -59,6 +61,15 @@ class PrometheusRequest:
         ):
 
             self.label_name = self.path[1]
+
+        # time
+        if not self.time:
+            self.time = self.http_post_data.get('time', None)
+
+        if self.time is not None:
+            self.time = datetime.datetime.fromtimestamp(
+                float(self.time),
+            )
 
         # start
         if not self.start:
