@@ -63,7 +63,7 @@ class PrometheusRequest:
             self.label_name = self.path[1]
 
         # time
-        if not self.time:
+        if self.time is None:
             self.time = self.http_post_data.get('time', None)
 
         if self.time is not None:
@@ -72,7 +72,7 @@ class PrometheusRequest:
             )
 
         # start
-        if not self.start:
+        if self.start is None:
             self.start = self.http_post_data.get('start', None)
 
         if self.start is not None:
@@ -81,7 +81,7 @@ class PrometheusRequest:
             )
 
         # end
-        if not self.end:
+        if self.end is None:
             self.end = self.http_post_data.get('end', None)
 
         if self.end is not None:
@@ -90,11 +90,11 @@ class PrometheusRequest:
             )
 
         # step
-        if not self.step:
+        if self.step is None:
             self.step = self.http_post_data.get('step', None)
 
         if self.step is not None:
-            self.step = int(self.http_post_data['step'])
+            self.step = int(self.step)
 
     def __repr__(self):
         return f'<PrometheusRequest({self.http_path!r}, query={self.query!r}), start={self.start!r}, end={self.end!r}, step={self.duration_string}>'  # NOQA
@@ -105,8 +105,10 @@ class PrometheusRequest:
 
     @property
     def timestamps(self):
-        # FIXME: fix name (iter_datetimes or so)
-        # FIXME: add checks whether the call can end in an endless loop
+        if self.start >= self.end:
+            raise ValueError(
+                f"invalid time range: start must be earlier than end (start{self.start}: , end: {self.end})",
+            )
 
         timedelta = datetime.timedelta(seconds=self.step)
         timestamp = self.start
