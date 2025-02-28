@@ -61,3 +61,13 @@ markdown_extensions:
 
 nav:
   - "Home": index.md
+  - "Getting Started": getting-started.md
+  - "Plugin API": plugin-api.md
+  - "Settings": settings.md
+  - "Testing": testing.md
+
+  - Plugins:
+    - "Catch Errors": plugins/catch-errors.md
+    - "Basic Auth": plugins/basic-auth.md
+
+  - "Changelog": changelog.md
