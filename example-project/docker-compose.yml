@@ -1,0 +1,31 @@
+services:
+  grafana:
+    image: grafana/grafana-oss:latest
+
+    ports:
+      - 3000:3000
+
+    volumes:
+      - ./data/grafana/grafana/:/var/lib/grafana/
+
+    user: "0"
+
+  prometheus-virtual-metrics:
+    build:
+      context: .
+
+    ports:
+      - 9090:9090
+
+    volumes:
+      - .:/app
+
+    working_dir: /app
+
+    environment:
+      PYTHONPATH: /app/src
+      PYTHONUNBUFFERED: 1
+      PROMETHEUS_VIRTUAL_METRICS_SETTINGS: settings
+
+    command:
+      python3 -m watchfiles "python3 -m prometheus_virtual_metrics" /app/src
