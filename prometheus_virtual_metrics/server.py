@@ -11,11 +11,9 @@ from prometheus_virtual_metrics.request import PrometheusRequest
 from prometheus_virtual_metrics import default_settings
 from prometheus_virtual_metrics import constants
 
-from prometheus_virtual_metrics.responses import (
-    PrometheusVectorResponse,
-    PrometheusMatrixResponse,
-    PrometheusSeriesResponse,
-    PrometheusDataResponse,
+from prometheus_virtual_metrics.response import (
+    PROMETHEUS_RESPONSE_TYPE,
+    PrometheusResponse,
 )
 
 default_logger = logging.getLogger('prometheus-virtual-metrics')
@@ -172,59 +170,49 @@ class PrometheusVirtualMetricsServer:
 
             # /api/v1/query
             if path[0] == 'query':
-                hook_name = 'on_instant_query_request'
+                response_type = PROMETHEUS_RESPONSE_TYPE.VECTOR
                 request_type = 'instant'
                 data_point_type = 'samples'
-
-                prometheus_response = PrometheusVectorResponse(
-                    request=prometheus_request,
-                )
+                hook_name = 'on_instant_query_request'
 
             # /api/v1/query_range
             elif path[0] == 'query_range':
-                hook_name = 'on_range_query_request'
+                response_type = PROMETHEUS_RESPONSE_TYPE.MATRIX
                 request_type = 'range'
                 data_point_type = 'samples'
-
-                prometheus_response = PrometheusMatrixResponse(
-                    request=prometheus_request,
-                )
+                hook_name = 'on_range_query_request'
 
             # /api/v1/labels
             elif path[0] == 'labels':
-                hook_name = 'on_label_names_request'
+                response_type = PROMETHEUS_RESPONSE_TYPE.DATA
                 request_type = 'label names'
                 data_point_type = 'values'
-
-                prometheus_response = PrometheusDataResponse(
-                    request=prometheus_request,
-                )
+                hook_name = 'on_label_names_request'
 
             # /api/v1/label/foo/values
             # /api/v1/label/__name__/values
             elif path[0] == 'label':
+                response_type = PROMETHEUS_RESPONSE_TYPE.DATA
+                request_type = 'label values'
+                data_point_type = 'values'
+
                 if path[1] == '__name__':
                     hook_name = 'on_metric_names_request'
 
                 else:
                     hook_name = 'on_label_values_request'
 
-                request_type = 'label values'
-                data_point_type = 'values'
-
-                prometheus_response = PrometheusDataResponse(
-                    request=prometheus_request,
-                )
-
             # /api/v1/series
             elif path[0] == 'series':
-                hook_name = 'on_metric_names_request'
+                response_type = PROMETHEUS_RESPONSE_TYPE.SERIES
                 request_type = 'metrics names'
                 data_point_type = 'values'
+                hook_name = 'on_metric_names_request'
 
-                prometheus_response = PrometheusSeriesResponse(
-                    request=prometheus_request,
-                )
+            prometheus_response = PrometheusResponse(
+                response_type=response_type,
+                request=prometheus_request,
+            )
 
             # run plugin hooks
             await self._run_plugin_hook(

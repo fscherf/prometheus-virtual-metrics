@@ -5,22 +5,21 @@ import pytest
 
 from prometheus_virtual_metrics.request import PrometheusRequest
 
-from prometheus_virtual_metrics.responses import (
-    PrometheusVectorResponse,
-    PrometheusMatrixResponse,
-    PrometheusSeriesResponse,
-    PrometheusDataResponse,
+from prometheus_virtual_metrics.response import (
+    PROMETHEUS_RESPONSE_TYPE,
+    PrometheusResponse,
 )
 
 
 @pytest.mark.parametrize('response_type', [
-    PrometheusVectorResponse,
-    PrometheusMatrixResponse,
+    PROMETHEUS_RESPONSE_TYPE.VECTOR,
+    PROMETHEUS_RESPONSE_TYPE.MATRIX,
 ])
 def test_sample_responses(response_type):
 
     # valid metric name
-    response = response_type(
+    response = PrometheusResponse(
+        response_type=response_type,
         request=PrometheusRequest(),
     )
 
@@ -31,7 +30,8 @@ def test_sample_responses(response_type):
     )
 
     # invalid metric name
-    response = response_type(
+    response = PrometheusResponse(
+        response_type=response_type,
         request=PrometheusRequest(),
     )
 
@@ -46,7 +46,8 @@ def test_sample_responses(response_type):
 
     # valid metric values
     for value in (1, 1.0, Decimal('1.0')):
-        response = response_type(
+        response = PrometheusResponse(
+            response_type=response_type,
             request=PrometheusRequest(),
         )
 
@@ -58,7 +59,8 @@ def test_sample_responses(response_type):
 
     # invalid metric values
     for value in ('1', True, {}, []):
-        response = response_type(
+        response = PrometheusResponse(
+            response_type=response_type,
             request=PrometheusRequest(),
         )
 
@@ -78,7 +80,8 @@ def test_sample_responses(response_type):
     ]
 
     for timestamp in valid_timestamps:
-        response = response_type(
+        response = PrometheusResponse(
+            response_type=response_type,
             request=PrometheusRequest(),
         )
 
@@ -107,7 +110,8 @@ def test_sample_responses(response_type):
     assert str(exc_info.value).startswith('timestamp ')
 
     # valid metric labels
-    response = response_type(
+    response = PrometheusResponse(
+        response_type=response_type,
         request=PrometheusRequest(),
     )
 
@@ -133,7 +137,8 @@ def test_sample_responses(response_type):
     ]
 
     for invalid_labels in invalid_label_values:
-        response = response_type(
+        response = PrometheusResponse(
+            response_type=response_type,
             request=PrometheusRequest(),
         )
 
@@ -148,7 +153,8 @@ def test_sample_responses(response_type):
         assert str(exc_info.value).startswith('metric_labels ')
 
     # check query match
-    response = response_type(
+    response = PrometheusResponse(
+        response_type=response_type,
         request=PrometheusRequest(
             query_string='{__name__=~"foo|bar"}',
         ),
@@ -182,7 +188,8 @@ def test_sample_responses(response_type):
 
 
 def test_sample_response_label_mismatch():
-    response = PrometheusMatrixResponse(
+    response = PrometheusResponse(
+        response_type=PROMETHEUS_RESPONSE_TYPE.MATRIX,
         request=PrometheusRequest(),
     )
 
@@ -222,7 +229,8 @@ def test_sample_response_label_mismatch():
 
 
 def test_sample_response_label_duplicates():
-    response = PrometheusVectorResponse(
+    response = PrometheusResponse(
+        response_type=PROMETHEUS_RESPONSE_TYPE.VECTOR,
         request=PrometheusRequest(),
     )
 
@@ -252,7 +260,8 @@ def test_sample_response_label_duplicates():
 
 
 def test_sample_response_query_checks():
-    response = PrometheusVectorResponse(
+    response = PrometheusResponse(
+        response_type=PROMETHEUS_RESPONSE_TYPE.VECTOR,
         request=PrometheusRequest(
             query_string='foo',
         ),
@@ -293,11 +302,12 @@ def test_sample_response_query_checks():
 
 
 @pytest.mark.parametrize('response_type', [
-    PrometheusSeriesResponse,
-    PrometheusDataResponse,
+    PROMETHEUS_RESPONSE_TYPE.DATA,
+    PROMETHEUS_RESPONSE_TYPE.SERIES,
 ])
 def test_data_responses(response_type):
-    response = response_type(
+    response = PrometheusResponse(
+        response_type=response_type,
         request=PrometheusRequest(),
     )
 
@@ -320,7 +330,8 @@ def test_data_responses(response_type):
 def test_sample_response_encoding():
 
     # empty response
-    response = PrometheusMatrixResponse(
+    response = PrometheusResponse(
+        response_type=PROMETHEUS_RESPONSE_TYPE.MATRIX,
         request=PrometheusRequest(),
     )
 
@@ -426,7 +437,8 @@ def test_sample_response_encoding():
     }
 
     # skip type checks
-    response = PrometheusMatrixResponse(
+    response = PrometheusResponse(
+        response_type=PROMETHEUS_RESPONSE_TYPE.MATRIX,
         request=PrometheusRequest(),
     )
 
@@ -471,7 +483,8 @@ def test_sample_response_encoding():
 def test_data_response_encoding():
 
     # empty response
-    response = PrometheusDataResponse(
+    response = PrometheusResponse(
+        response_type=PROMETHEUS_RESPONSE_TYPE.DATA,
         request=PrometheusRequest(),
     )
 
@@ -512,7 +525,8 @@ def test_data_response_encoding():
     }
 
     # skip type checks
-    response = PrometheusDataResponse(
+    response = PrometheusResponse(
+        response_type=PROMETHEUS_RESPONSE_TYPE.DATA,
         request=PrometheusRequest(),
     )
 
@@ -537,7 +551,8 @@ def test_data_response_encoding():
 def test_series_response_encoding():
 
     # empty response
-    response = PrometheusSeriesResponse(
+    response = PrometheusResponse(
+        response_type=PROMETHEUS_RESPONSE_TYPE.SERIES,
         request=PrometheusRequest(),
     )
 
