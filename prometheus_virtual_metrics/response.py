@@ -12,6 +12,13 @@ class PROMETHEUS_RESPONSE_TYPE(Enum):
 
 
 class PrometheusResponse:
+    """
+    Attributes:
+        response_type (prometheus_virtual_metrics.PROMETHEUS_RESPONSE_TYPE): Response type
+        request (prometheus_virtual_metrics.Request): Prometheus request
+        result_count (int): Count of added results/samples
+    """  # NOQA
+
     def __init__(self, response_type, request):
         self.response_type = response_type
         self.request = request
@@ -57,6 +64,14 @@ class PrometheusResponse:
         values_list.extend(values)
 
     def add_info(self, message, skip_type_checks=False):
+        """
+        Add info message
+
+        Args:
+            message (list[str] | str): Info message
+            skip_type_checks (bool): Skip type checks
+        """
+
         self._add_values(
             values=message,
             skip_type_checks=skip_type_checks,
@@ -65,6 +80,14 @@ class PrometheusResponse:
         )
 
     def add_warning(self, message, skip_type_checks=False):
+        """
+        Add warning message
+
+        Args:
+            message (list[str] | str): Info message
+            skip_type_checks (bool): Skip type checks
+        """
+
         self._add_values(
             values=message,
             skip_type_checks=skip_type_checks,
@@ -73,6 +96,16 @@ class PrometheusResponse:
         )
 
     def add_value(self, value, skip_type_checks=False):
+        """
+        Add value. Only available in data and series responses.
+
+        Args:
+            value (str): Value
+            skip_type_checks (bool): Skip type checks
+
+        Raises:
+            ValueError: If response is not a data or series response
+        """
 
         # check response type
         if (
@@ -100,6 +133,27 @@ class PrometheusResponse:
             skip_type_checks=False,
             skip_query_checks=False,
     ):
+        """
+        Add sample. Only available in vector and matrix responses.
+
+        When `skip_query_checks` is not disabled, `add_sample` will check
+        whether the added sample (metric name + metric labels) matches the
+        PromQL query. If not, the sample is skipped.
+        If you have computational metric values, you can provide a callback
+        for `metric_value`, which then is only called if the added sample is
+        not skipped.
+
+        Args:
+            metric_name (str): Metric name
+            metric_value (Number | Callable[None, Number]): Metric value
+            timestamp (datetime.datetime | float): Timestamp
+            metric_labels (dict[str, str] | None): Metric labels
+            skip_type_checks (bool): Skip type checks
+            skip_query_checks (bool): Skip query checks
+
+        Returns:
+            sample_added (bool): Returns `True` if the sample was not skipped
+        """
 
         # check response type
         if (

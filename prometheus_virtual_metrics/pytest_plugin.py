@@ -99,11 +99,22 @@ class BackgroundLoop:
 
 
 class PrometheusVirtualMetricsContext:
+    """
+    Attributes:
+        loop (asyncio.EventLoop): asyncio event loop
+        settings (module | namespace): settings
+    """
+
     def __init__(self, loop, settings):
         self.loop = loop
         self.settings = settings
 
     def start(self, host=DEFAULT_HOST, port=DEFAULT_PORT):
+        """
+        Starts the test server. Is called implicitly when using
+        the pytest fixture.
+        """
+
         async def _start():
             aiohttp_app = Application()
 
@@ -133,6 +144,11 @@ class PrometheusVirtualMetricsContext:
         ).result()
 
     def stop(self):
+        """
+        Stops the running test server. Is called implicitly when using
+        the pytest fixture.
+        """
+
         async def _stop():
             await self.site.stop()
             await self.app_runner.cleanup()
@@ -143,6 +159,16 @@ class PrometheusVirtualMetricsContext:
         ).result()
 
     def get_url(self, path):
+        """
+        Returns absolute URL to running test server.
+
+        Args:
+            path (str): Path as string
+
+        Returns:
+            URL (str): URL as string
+        """
+
         host, port = self.app_runner.addresses[0]
 
         return f'http://{host}:{port}{path}'
@@ -155,6 +181,23 @@ class PrometheusVirtualMetricsContext:
             request_series=False,
             auth=None,
     ):
+
+        """
+        Request metric names.
+
+          - URL: `/api/v1/${label}/__name__/` or `/api/v1/series`
+          - Hook: on_metric_names_request
+
+        Args:
+            query_string (str | None): PromQl query as string
+            start (datetime.datetime | None): start as datetime.datetime
+            end (datetime.datetime | None): end as datetime.datetime
+            request_series (bool): Use timeseries request
+            auth (tuple[str], None): Basic auth username and password
+
+        Returns:
+            response (dict): HTTP response as dict
+        """
 
         data = {}
 
@@ -187,6 +230,22 @@ class PrometheusVirtualMetricsContext:
             auth=None,
     ):
 
+        """
+        Request label names.
+
+          - URL: `/api/v1/labels`
+          - Hook: on_label_names_request
+
+        Args:
+            query_string (str | None): PromQl query as string
+            start (datetime.datetime | None): start as datetime.datetime
+            end (datetime.datetime | None): end as datetime.datetime
+            auth (tuple[str], None): Basic auth username and password
+
+        Returns:
+            response (dict): HTTP response as dict
+        """
+
         data = {}
 
         if query_string is not None:
@@ -213,6 +272,23 @@ class PrometheusVirtualMetricsContext:
             auth=None,
     ):
 
+        """
+        Request label values.
+
+          - URL: `/api/v1/label/${label}/values`
+          - Hook: on_label_values_request
+
+        Args:
+            label_name (str): Label name
+            query_string (str | None): PromQl query as string
+            start (datetime.datetime | None): start as datetime.datetime
+            end (datetime.datetime | None): end as datetime.datetime
+            auth (tuple[str], None): Basic auth username and password
+
+        Returns:
+            response (dict): HTTP response as dict
+        """
+
         data = {}
 
         if query_string is not None:
@@ -238,6 +314,22 @@ class PrometheusVirtualMetricsContext:
             auth=None,
     ):
 
+        """
+        Request data at timestamp.
+
+          - URL: `/api/v1/query`
+          - Hook: on_instant_query_request
+
+        Args:
+            query_string (str | None): PromQl query as string
+            time (datetime.datetime): Timstamp
+            step (float): Interval between timestamps
+            auth (tuple[str], None): Basic auth username and password
+
+        Returns:
+            response (dict): HTTP response as dict
+        """
+
         return requests.post(
             self.get_url('/api/v1/query'),
             data={
@@ -256,6 +348,23 @@ class PrometheusVirtualMetricsContext:
             step=15,
             auth=None,
     ):
+
+        """
+        Request data in time range.
+
+          - URL: `/api/v1/query_range`
+          - Hook: on_range_query_request
+
+        Args:
+            query_string (str | None): PromQl query as string
+            start (datetime.datetime | None): start as datetime.datetime
+            end (datetime.datetime | None): end as datetime.datetime
+            step (float): Interval between timestamps
+            auth (tuple[str], None): Basic auth username and password
+
+        Returns:
+            response (dict): HTTP response as dict
+        """
 
         return requests.post(
             self.get_url('/api/v1/query_range'),

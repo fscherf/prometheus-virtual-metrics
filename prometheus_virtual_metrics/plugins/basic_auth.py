@@ -4,6 +4,17 @@ from prometheus_virtual_metrics.exceptions import ForbiddenError
 
 
 def get_credentials(request):
+    """
+    Returns username and password as a tuple of strings. If no credentials
+    can be found `('', '')` is returned.
+
+    Args:
+        request (prometheus_virtual_metrics.PrometheusRequest): Prometheus request
+
+    Returns:
+        credentials (tuple[str, str]): credentials
+    """
+
     auth_header = request.http_headers.get('Authorization', '')
 
     if not auth_header or not auth_header.startswith('Basic '):
@@ -18,6 +29,11 @@ def get_credentials(request):
 
 
 class BasicAuthPlugin:
+    """
+    Args:
+        credentials (dict[str, str]): Login credentials as dict. Keys are usernames, values passwords.
+    """
+
     def __init__(self, credentials=None):
         self.credentials = credentials or {}
 
@@ -42,6 +58,23 @@ class BasicAuthPlugin:
             raise ForbiddenError() from exception
 
     def check_credentials(self, username, password):
+        """
+        Gets called for every incoming Grafana request.
+        `username` and `password` are optained from the
+        `prometheus_virtual_metrics.PrometheusRequest`, using
+        `prometheus_virtual_metrics.plugins.basic_auth.get_credentials`.
+
+        If this method returns `False`, a
+        `prometheus_virtual_metrics.ForbiddenError` is raised.
+
+        Args:
+            username (str): Username as string
+            password (str): password as string
+
+        Returns:
+            credentials_valid (bool): credentials are valid
+        """
+
         if (username in self.credentials and
                 self.credentials[username] == password):
 

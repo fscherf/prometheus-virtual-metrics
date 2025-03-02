@@ -4,6 +4,13 @@ import promql_parser
 
 
 class PromqlQuery:
+    """
+    Attributes:
+        string (str): PromQL query as string
+        ast (promql_parser.Ast | None): PromQL query object
+        name (str): Requested metric name in `ast`
+    """
+
     def __init__(self, query_string):
         self.string = query_string
 
@@ -59,6 +66,15 @@ class PromqlQuery:
         return False
 
     def name_matches(self, name):
+        """
+        Returns `True` when the given string matches `query`
+
+        Args:
+            name (str): Metric name
+
+        Returns:
+            (bool): Given string matches `query`
+        """
 
         # everything matches an empty query
         if not self.ast:
@@ -82,6 +98,16 @@ class PromqlQuery:
         return True
 
     def matches(self, name='', labels=None):
+        """
+        Returns `True` when the given string and labels match `query`
+
+        Args:
+            name (str): Metric name
+            labels (dict[str,str] | None): Metric labels
+
+        Returns:
+            (bool): Given string and labels match `query`
+        """
 
         # everything matches an empty query
         if not self.ast:

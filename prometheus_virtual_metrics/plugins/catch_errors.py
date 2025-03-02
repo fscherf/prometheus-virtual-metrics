@@ -8,6 +8,14 @@ logger = logging.getLogger('prometheus-virtual-metrics')
 
 
 class CatchErrorsPlugin:
+    """
+    Args:
+        plugin (Plugin): prometheus-virtual-metrics plugin object (not class).
+        plugin_hook_names (list[str] | None): List of hooks that should be shielded. If not set, all hooks are shielded.
+        send_warnings (bool): If set to `True` warnings are added to prometheus responses.
+        logger (logger): logger
+    """
+
     def __init__(
             self,
             plugin,

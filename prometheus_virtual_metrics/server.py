@@ -20,6 +20,11 @@ default_logger = logging.getLogger('prometheus-virtual-metrics')
 
 
 class PrometheusVirtualMetricsServer:
+    """
+    Attributes:
+        settings (module | namespace): Central server settings
+    """
+
     def __init__(self, settings, aiohttp_app, logger=None):
         self.settings = settings
         self.aiohttp_app = aiohttp_app

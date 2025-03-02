@@ -6,6 +6,26 @@ from prometheus_virtual_metrics.promql import PromqlQuery
 
 
 class PrometheusRequest:
+    """
+    Attributes:
+        query_string (str): PromQl query of incoming request as string
+        query (prometheus_virtual_metrics.PromqlQuery): PromQl query of incoming request
+        time (datetime.datetime | None): Requested time. Is only set on instant queries
+        start (datetime.datetime | None): Start of the requested time range. Is only set on range queries
+        end (datetime.datetime |None): End of the requested time range. Is only set on range queries
+        step (int | None): Requested interval between samples. Is only set on range queries
+        label_name (str): Requested label. Is only set label value requests
+        timestamps (Generator[datetime.datetime]): List of timestamps between `start` and `end` with an interval of `step`
+        duration_string (str): `step` as duration string. Example: `30s` (30 Seconds)
+
+        server (prometheus_virtual_metrics.PrometheusVirtualMetricsServer): Running Server. Contains the server settings in `server.settings`
+
+        http_headers (multidict.CIMultiDict): HTTP header of incoming request
+        http_path (str): HTTP path of incoming request
+        http_query (multidict.CIMultiDict): HTTP query of incoming request
+        http_post_data (multidict.CIMultiDict): HTTP post data of incoming request
+    """
+
     def __init__(
             self,
             server=None,
