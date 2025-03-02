@@ -9,6 +9,9 @@ import pytest
 
 from prometheus_virtual_metrics.server import PrometheusVirtualMetricsServer
 
+DEFAULT_HOST = '127.0.0.1'
+DEFAULT_PORT = 0
+
 
 class BackgroundLoop:
     async def _loop_main(self):
@@ -100,7 +103,7 @@ class PrometheusVirtualMetricsContext:
         self.loop = loop
         self.settings = settings
 
-    def start(self, host='127.0.0.1', port=0):
+    def start(self, host=DEFAULT_HOST, port=DEFAULT_PORT):
         async def _start():
             aiohttp_app = Application()
 
@@ -273,13 +276,16 @@ def prometheus_virtual_metrics_context_factory():
 
     background_loop.start()
 
-    def _factory(settings):
+    def _factory(settings, host=DEFAULT_HOST, port=DEFAULT_PORT):
         context = PrometheusVirtualMetricsContext(
             loop=background_loop.loop,
             settings=settings,
         )
 
-        context.start()
+        context.start(
+            host=host,
+            port=port,
+        )
 
         contexts.append(context)
 
