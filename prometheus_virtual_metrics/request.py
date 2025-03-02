@@ -127,7 +127,7 @@ class PrometheusRequest:
     def timestamps(self):
         if self.start >= self.end:
             raise ValueError(
-                f"invalid time range: start must be earlier than end (start{self.start}: , end: {self.end})",
+                f"invalid time range: start must be earlier than end (start{self.start}: , end: {self.end})",  # NOQA
             )
 
         timedelta = datetime.timedelta(seconds=self.step)
