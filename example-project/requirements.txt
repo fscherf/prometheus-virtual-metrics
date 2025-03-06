@@ -1,2 +1,2 @@
-prometheus-virtual-metrics~=0.1
+prometheus-virtual-metrics
 watchfiles
