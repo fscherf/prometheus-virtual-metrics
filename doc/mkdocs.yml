@@ -13,7 +13,8 @@ theme:
     # light
     - media: "(prefers-color-scheme: light)"
       scheme: default
-      primary: indigo
+      primary: custom
+      accent: custom
 
       toggle:
         icon: material/toggle-switch-off-outline
@@ -22,12 +23,12 @@ theme:
     # dark
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: indigo
+      primary: custom
+      accent: custom
 
       toggle:
         icon: material/toggle-switch
         name: Switch to light mode
-
 
   features:
     - navigation.instant
@@ -37,6 +38,9 @@ theme:
     - navigation.footer
     - navigation.expand
     - content.code.copy
+
+extra_css:
+  - stylesheets/extra.css
 
 plugins:
   - search
@@ -67,7 +71,8 @@ nav:
   - "Testing": testing.md
 
   - Plugins:
-    - "Catch Errors": plugins/catch-errors.md
-    - "Basic Auth": plugins/basic-auth.md
+    - "CatchErrorsPlugin": plugins/catch-errors.md
+    - "BasicAuthPlugin": plugins/basic-auth.md
+    - "rlpythonPlugin": plugins/rlpython.md
 
   - "Changelog": changelog.md
