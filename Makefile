@@ -36,6 +36,9 @@ doc:
 doc-server:
 	$(call DOCKER_COMPOSE_RUN,,tox -e doc-server)
 
+grip:
+	$(call DOCKER_COMPOSE_RUN,,tox -e grip)
+
 
 # docker
 docker-build:

@@ -21,7 +21,7 @@ services:
 
     ports:
       - 9090:9090  # prometheus
-      - 8000:8000  # mkdocs
+      - 8000:8000  # mkdocs, grip
 
     volumes:
       - .:/app
@@ -29,6 +29,9 @@ services:
     user: "1000:1000"
 
     working_dir: /app
+
+    environment:
+      - HOME=/app/data/home/user
 
     command:
       tox -e server
