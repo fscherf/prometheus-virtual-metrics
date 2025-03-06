@@ -5,6 +5,13 @@ To get started with prometheus-virtual-metrics, you can either use the
 as a starting point or follow this tutorial.
 
 
+## Installation
+
+```bash
+$ pip install prometheus-virtual-metrics
+```
+
+
 ## Starting The Server
 
 prometheus-virtual-metrics is started by invoking
