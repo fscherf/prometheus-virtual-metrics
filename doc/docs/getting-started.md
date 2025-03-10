@@ -1,6 +1,6 @@
 # Getting Started
 
-To get started with prometheus-virtual-metrics, you can either use the
+To get started with prometheus-virtual-metrics, you can use the
 [example project](https://github.com/fscherf/prometheus-virtual-metrics/tree/master/example-project)
 as a starting point or follow this tutorial.
 
@@ -57,7 +57,7 @@ verify that everything works, you can go to Grafanas explore view and query
 # Write A Plugin
 
 Write a [Plugin](plugin-api.md) and put it somewhere your settings module
-can import it. Then load the plugin into your settings module and add it to
+can import it. Then, load the plugin into your settings module and add it to
 `PLUGINS`:
 
 ```python

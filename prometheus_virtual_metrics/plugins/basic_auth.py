@@ -60,7 +60,7 @@ class BasicAuthPlugin:
     def check_credentials(self, username, password):
         """
         Gets called for every incoming Grafana request.
-        `username` and `password` are optained from the
+        `username` and `password` are obtained from the
         `prometheus_virtual_metrics.PrometheusRequest`, using
         `prometheus_virtual_metrics.plugins.basic_auth.get_credentials`.
 

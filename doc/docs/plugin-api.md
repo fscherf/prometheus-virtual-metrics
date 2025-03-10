@@ -1,20 +1,20 @@
 # Plugin API
 
-prometheus-virtual-metrics plugins are simple Python classes than can define
-hooks that get called on certain Grafana requests. A Grafana request can be
-a query for data or metric meta data.
+prometheus-virtual-metrics plugins are simple Python classes that can define
+hooks that get called on certain Grafana requests. A Grafana request can be a
+query for data or metric metadata.
 
-All hooks are optional. None of them has to be implemented. To get started,
-and to see something in Grafana, `on_range_query_request()` will be enough as
-a starting point.
+All hooks are optional. None of them has to be implemented. To get started and
+to see something in Grafana, `on_range_query_request()` will be enough as a
+starting point.
 
-All hooks can be async and none of them has to return something. Most hooks get
+All hooks can be async, and none has to return something. Most hooks get
 injected a `request` and a `response` which contain all API you will need.
 
 prometheus-virtual-metrics does no other error handling than logging it when a
 plugin hook crashes. If this happens in a startup hook, the server crashes and
-stops. If this happens in a request hook, a HTTP 500 is returned.
-If you have flaky plugins and you want to shield the other plugins from them,
+stops. If this happens in a request hook, an HTTP 500 is returned.
+If you have flaky plugins and want to shield the other plugins from them,
 use [CatchErrorsPlugin](plugins/catch-errors.md).
 ```python
 class ExamplePlugin:

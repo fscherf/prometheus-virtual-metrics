@@ -43,8 +43,8 @@ class ExamplePlugin:
 ```
 
 prometheus-virtual-metrics is not meant to be a Prometheus replacement! It is
-meant to connect Grafana to data sources like databases or REST APIs
-that are not supported by Grafana itself. 
+intended to connect Grafana to data sources like databases or REST APIs that
+Grafana itself does not support.
 
 Similar projects:
 
@@ -56,5 +56,5 @@ Similar projects:
 
 prometheus-virtual-metrics is just about getting data into Grafana. Prometheus
 is part of the Grafana suite, so by implementing a compatible server, we get
-perfect integration into Grafana UI. Additionally, Prometheus defines simple
+perfect integration into Grafana UI. Additionally, Prometheus defines a simple
 yet powerful API and query language we can take advantage of.
