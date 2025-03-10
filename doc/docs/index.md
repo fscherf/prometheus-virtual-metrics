@@ -32,15 +32,16 @@ class ExamplePlugin:
 
             for amplitude in (1, 5, 10):
                 response.add_sample(
-                    self.METRIC_NAME,
+                    metric_name='sine',
                     metric_value=math.sin(t * 2 * math.pi / 60) * amplitude,
                     metric_labels={
-                        'type': 'sine',
                         'amplitude': str(amplitude),
                     },
                     timestamp=timestamp,
                 )
 ```
+
+![Sine Graph](sine-graph.png)
 
 prometheus-virtual-metrics is not meant to be a Prometheus replacement! It is
 intended to connect Grafana to data sources like databases or REST APIs that
