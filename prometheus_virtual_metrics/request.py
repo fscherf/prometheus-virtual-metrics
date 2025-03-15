@@ -1,8 +1,15 @@
 import datetime
+import re
 
 from multidict import CIMultiDict
 
 from prometheus_virtual_metrics.promql import PromqlQuery
+
+PROMETHEUS_REQUEST_PATH_RE = re.compile(r'/api/v1/(query|query_range|series|labels|label)')  # NOQA
+
+
+def valid_prometheus_request_path(path):
+    return bool(PROMETHEUS_REQUEST_PATH_RE.match(path))
 
 
 class PrometheusRequest:
@@ -33,7 +40,6 @@ class PrometheusRequest:
             http_query=None,
             http_post_data=None,
             http_path=None,
-            path=None,
             query_string='',
             time=None,
             start=None,
@@ -46,13 +52,25 @@ class PrometheusRequest:
         self.http_query = CIMultiDict(http_query or {})
         self.http_post_data = CIMultiDict(http_post_data or {})
         self.http_path = http_path or ''
-        self.path = path or []
 
         self.query_string = query_string
         self.time = time
         self.start = start
         self.end = end
         self.step = step
+
+        # path
+        path_parts = [
+            part.strip()
+            for part in self.http_path.split('/')
+            if part
+        ]
+
+        if 'v1' in path_parts:
+            self.path = path_parts[path_parts.index('v1')+1:]
+
+        else:
+            self.path = path_parts
 
         # promql query
         self.query = None

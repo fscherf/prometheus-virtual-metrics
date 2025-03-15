@@ -7,9 +7,13 @@ from multidict import CIMultiDict
 from aiohttp import web
 
 from prometheus_virtual_metrics.exceptions import ForbiddenError
-from prometheus_virtual_metrics.request import PrometheusRequest
 from prometheus_virtual_metrics import default_settings
 from prometheus_virtual_metrics import constants
+
+from prometheus_virtual_metrics.request import (
+    valid_prometheus_request_path,
+    PrometheusRequest,
+)
 
 from prometheus_virtual_metrics.response import (
     PROMETHEUS_RESPONSE_TYPE,
@@ -45,7 +49,7 @@ class PrometheusVirtualMetricsServer:
 
         self.aiohttp_app.router.add_route(
             '*',
-            r'/api/v1/{path:.*}',
+            r'/{path:.*}',
             self.handle_prometheus_request,
         )
 
@@ -146,27 +150,17 @@ class PrometheusVirtualMetricsServer:
             request_type = ''
             data_point_type = ''
 
-            # parse endpoint path
-            path = [
-                i.strip()
-                for i in http_request.match_info['path'].split('/')
-                if i
-            ]
-
             # unknown endpoint; return empty response
-            if path[0] not in ('query', 'query_range', 'series',
-                               'labels', 'label'):
-
+            if not valid_prometheus_request_path(http_request.path):
                 return web.json_response({})
 
-            # parse prometheus request
+            # prepare prometheus request
             prometheus_request = PrometheusRequest(
                 server=self,
                 http_headers=CIMultiDict(http_request.headers),
                 http_query=CIMultiDict(http_request.query),
                 http_post_data=CIMultiDict(await http_request.post()),
                 http_path=http_request.path,
-                path=path,
             )
 
             # prepare prometheus response
@@ -174,21 +168,21 @@ class PrometheusVirtualMetricsServer:
             hook_name = ''
 
             # /api/v1/query
-            if path[0] == 'query':
+            if prometheus_request.path[0] == 'query':
                 response_type = PROMETHEUS_RESPONSE_TYPE.VECTOR
                 request_type = 'instant'
                 data_point_type = 'samples'
                 hook_name = 'on_instant_query_request'
 
             # /api/v1/query_range
-            elif path[0] == 'query_range':
+            elif prometheus_request.path[0] == 'query_range':
                 response_type = PROMETHEUS_RESPONSE_TYPE.MATRIX
                 request_type = 'range'
                 data_point_type = 'samples'
                 hook_name = 'on_range_query_request'
 
             # /api/v1/labels
-            elif path[0] == 'labels':
+            elif prometheus_request.path[0] == 'labels':
                 response_type = PROMETHEUS_RESPONSE_TYPE.DATA
                 request_type = 'label names'
                 data_point_type = 'values'
@@ -196,19 +190,19 @@ class PrometheusVirtualMetricsServer:
 
             # /api/v1/label/foo/values
             # /api/v1/label/__name__/values
-            elif path[0] == 'label':
+            elif prometheus_request.path[0] == 'label':
                 response_type = PROMETHEUS_RESPONSE_TYPE.DATA
                 request_type = 'label values'
                 data_point_type = 'values'
 
-                if path[1] == '__name__':
+                if prometheus_request.path[1] == '__name__':
                     hook_name = 'on_metric_names_request'
 
                 else:
                     hook_name = 'on_label_values_request'
 
             # /api/v1/series
-            elif path[0] == 'series':
+            elif prometheus_request.path[0] == 'series':
                 response_type = PROMETHEUS_RESPONSE_TYPE.SERIES
                 request_type = 'metrics names'
                 data_point_type = 'values'
@@ -257,7 +251,7 @@ class PrometheusVirtualMetricsServer:
         except Exception as exception:
             self.logger.exception(
                 'exception raised while running processing %s request',
-                path[0],
+                prometheus_request.path[0],
             )
 
             return web.json_response({
