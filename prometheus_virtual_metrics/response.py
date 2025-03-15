@@ -5,6 +5,7 @@ import datetime
 
 
 class PROMETHEUS_RESPONSE_TYPE(Enum):
+    ERROR = auto()
     VECTOR = auto()
     MATRIX = auto()
     DATA = auto()
@@ -23,6 +24,8 @@ class PrometheusResponse:
         self.response_type = response_type
         self.request = request
 
+        self.http_status = 200
+
         self._lock = RLock()
         self._metrics = {}
         self._data = []
@@ -30,6 +33,8 @@ class PrometheusResponse:
         self._samples_count = 0
         self._infos = []
         self._warnings = []
+        self._error_type = ''
+        self._error = ''
 
     @property
     def result_count(self):
@@ -62,6 +67,11 @@ class PrometheusResponse:
                     )
 
         values_list.extend(values)
+
+    def _set_error(self, error_type, error, http_status=200):
+        self.http_status = http_status
+        self._error_type = error_type
+        self._error = error
 
     def add_info(self, message, skip_type_checks=False):
         """
@@ -265,8 +275,16 @@ class PrometheusResponse:
 
     def to_dict(self):
 
+        # error response
+        if self.response_type is PROMETHEUS_RESPONSE_TYPE.ERROR:
+            return {
+                'status': 'error',
+                'errorType': self._error_type,
+                'error': self._error,
+            }
+
         # sample response
-        if (
+        elif (
             self.response_type in (
                 PROMETHEUS_RESPONSE_TYPE.VECTOR,
                 PROMETHEUS_RESPONSE_TYPE.MATRIX,
