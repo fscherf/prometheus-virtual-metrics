@@ -27,6 +27,7 @@ class PrometheusRequest:
 
         server (prometheus_virtual_metrics.PrometheusVirtualMetricsServer): Running Server. Contains the server settings in `server.settings`
 
+        http_remote (str): HTTP client IP
         http_headers (multidict.CIMultiDict): HTTP header of incoming request
         http_path (str): HTTP path of incoming request
         http_query (multidict.CIMultiDict): HTTP query of incoming request
@@ -36,6 +37,7 @@ class PrometheusRequest:
     def __init__(
             self,
             server=None,
+            http_remote='',
             http_headers=None,
             http_query=None,
             http_post_data=None,
@@ -48,6 +50,7 @@ class PrometheusRequest:
     ):
 
         self.server = server
+        self.http_remote = http_remote
         self.http_headers = CIMultiDict(http_headers or {})
         self.http_query = CIMultiDict(http_query or {})
         self.http_post_data = CIMultiDict(http_post_data or {})

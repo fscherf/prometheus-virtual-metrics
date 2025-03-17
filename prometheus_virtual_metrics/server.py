@@ -157,6 +157,7 @@ class PrometheusVirtualMetricsServer:
             # prepare prometheus request
             prometheus_request = PrometheusRequest(
                 server=self,
+                http_remote=http_request.remote,
                 http_headers=CIMultiDict(http_request.headers),
                 http_query=CIMultiDict(http_request.query),
                 http_post_data=CIMultiDict(await http_request.post()),
@@ -232,7 +233,7 @@ class PrometheusVirtualMetricsServer:
                 prometheus_response.result_count,
                 data_point_type,
                 repr(prometheus_request.query_string),
-                http_request.remote,
+                prometheus_request.http_remote,
             )
 
             # send response
