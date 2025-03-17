@@ -50,7 +50,7 @@ class PrometheusVirtualMetricsServer:
         self.aiohttp_app.router.add_route(
             '*',
             r'/{path:.*}',
-            self.handle_prometheus_request,
+            self.handle_http_request,
         )
 
         self.aiohttp_app.on_startup.append(self.on_startup)
@@ -61,21 +61,37 @@ class PrometheusVirtualMetricsServer:
 
         self._discover_plugin_hooks()
 
+    def run_coroutine_sync(self, coroutine):
+        future = asyncio.run_coroutine_threadsafe(
+            coro=coroutine,
+            loop=self.loop,
+        )
+
+        return future.result()
+
     async def on_startup(self, app):
-        await self._run_plugin_hook(
-            hook_name='on_startup',
-            hook_kwargs={
-                'server': self,
-            },
+        self.loop = asyncio.get_event_loop()
+
+        await self.loop.run_in_executor(
+            self.executor,
+            lambda: self._run_plugin_hook(
+                hook_name='on_startup',
+                hook_kwargs={
+                    'server': self,
+                },
+            ),
         )
 
     async def on_shutdown(self, app):
         try:
-            await self._run_plugin_hook(
-                hook_name='on_shutdown',
-                hook_kwargs={
-                    'server': self,
-                },
+            await self.loop.run_in_executor(
+                self.executor,
+                lambda: self._run_plugin_hook(
+                    hook_name='on_shutdown',
+                    hook_kwargs={
+                        'server': self,
+                    },
+                )
             )
 
         finally:
@@ -114,7 +130,7 @@ class PrometheusVirtualMetricsServer:
                     (is_async, hook, )
                 )
 
-    async def _run_plugin_hook(
+    def _run_plugin_hook(
             self,
             hook_name,
             hook_args=None,
@@ -135,34 +151,53 @@ class PrometheusVirtualMetricsServer:
 
         for is_async, hook in self._plugin_hooks[hook_name]:
             if is_async:
-                await hook(*hook_args, **hook_kwargs)
-
-            else:
-                await asyncio.get_event_loop().run_in_executor(
-                    self.executor,
-                    lambda: hook(*hook_args, **hook_kwargs),
+                self.run_coroutine_sync(
+                    coroutine=hook(*hook_args, **hook_kwargs),
                 )
 
-    # prometheus HTTP API #####################################################
-    async def handle_prometheus_request(self, http_request):
-        try:
-            start_time = perf_counter()
-            request_type = ''
-            data_point_type = ''
+            else:
+                hook(*hook_args, **hook_kwargs)
+
+    async def handle_http_request(self, http_request):
+        post_data = await http_request.post()
+
+        def _get_aiohttp_response():
 
             # unknown endpoint; return empty response
             if not valid_prometheus_request_path(http_request.path):
                 return web.json_response({})
 
-            # prepare prometheus request
             prometheus_request = PrometheusRequest(
                 server=self,
                 http_remote=http_request.remote,
                 http_headers=CIMultiDict(http_request.headers),
                 http_query=CIMultiDict(http_request.query),
-                http_post_data=CIMultiDict(await http_request.post()),
+                http_post_data=CIMultiDict(post_data),
                 http_path=http_request.path,
             )
+
+            prometheus_response = self.handle_prometheus_request(
+                prometheus_request=prometheus_request,
+            )
+
+            return web.json_response(
+                status=prometheus_response.http_status,
+                data=prometheus_response.to_dict(),
+            )
+
+        aiohttp_response = await self.loop.run_in_executor(
+            self.executor,
+            _get_aiohttp_response,
+        )
+
+        return aiohttp_response
+
+    # prometheus HTTP API #####################################################
+    def handle_prometheus_request(self, prometheus_request):
+        try:
+            start_time = perf_counter()
+            request_type = ''
+            data_point_type = ''
 
             # prepare prometheus response
             prometheus_response = None
@@ -215,7 +250,7 @@ class PrometheusVirtualMetricsServer:
             )
 
             # run plugin hooks
-            await self._run_plugin_hook(
+            self._run_plugin_hook(
                 hook_name=hook_name,
                 hook_kwargs={
                     'request': prometheus_request,
@@ -236,18 +271,22 @@ class PrometheusVirtualMetricsServer:
                 prometheus_request.http_remote,
             )
 
-            # send response
-            return web.json_response(prometheus_response.to_dict())
+            # finish
+            return prometheus_response
 
         except ForbiddenError as exception:
-            return web.json_response(
-                {
-                    'status': 'error',
-                    'errorType': 'HTTP',
-                    'error': repr(exception),
-                },
-                status=401,
+            response = PrometheusResponse(
+                response_type=PROMETHEUS_RESPONSE_TYPE.ERROR,
+                request=prometheus_request,
             )
+
+            response._set_error(
+                error_type='HTTP',
+                error=repr(exception),
+                http_status=401,
+            )
+
+            return response
 
         except Exception as exception:
             self.logger.exception(
@@ -255,8 +294,14 @@ class PrometheusVirtualMetricsServer:
                 prometheus_request.path[0],
             )
 
-            return web.json_response({
-                'status': 'error',
-                'errorType': 'Python Exception',
-                'error': repr(exception),
-            })
+            response = PrometheusResponse(
+                response_type=PROMETHEUS_RESPONSE_TYPE.ERROR,
+                request=prometheus_request,
+            )
+
+            response._set_error(
+                error_type='Python Exception',
+                error=repr(exception),
+            )
+
+            return response
