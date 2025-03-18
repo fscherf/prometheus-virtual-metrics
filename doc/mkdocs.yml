@@ -70,6 +70,9 @@ nav:
   - "Settings": settings.md
   - "Testing": testing.md
 
+  - Integrations:
+    - "Django": "integrations/django.md"
+
   - Plugins:
     - "CatchErrorsPlugin": plugins/catch-errors.md
     - "BasicAuthPlugin": plugins/basic-auth.md

@@ -50,6 +50,8 @@ test = [
   "pytest==8.3.3",
   "rlpython",
   "requests",
+  "pytest-django==4.10.0",
+  "django~=4.2",
 ]
 
 doc = [
