@@ -25,7 +25,7 @@ class PrometheusRequest:
         timestamps (Generator[datetime.datetime]): List of timestamps between `start` and `end` with an interval of `step`
         duration_string (str): `step` as duration string. Example: `30s` (30 Seconds)
 
-        server (prometheus_virtual_metrics.PrometheusVirtualMetricsServer): Running Server. Contains the server settings in `server.settings`
+        context (prometheus_virtual_metrics.PrometheusVirtualMetricsContext): prometheus-virtual-metrics context
 
         http_remote (str): HTTP client IP
         http_headers (multidict.CIMultiDict): HTTP header of incoming request
@@ -36,7 +36,7 @@ class PrometheusRequest:
 
     def __init__(
             self,
-            server=None,
+            context=None,
             http_remote='',
             http_headers=None,
             http_query=None,
@@ -49,7 +49,7 @@ class PrometheusRequest:
             step=None,
     ):
 
-        self.server = server
+        self.context = context
         self.http_remote = http_remote
         self.http_headers = CIMultiDict(http_headers or {})
         self.http_query = CIMultiDict(http_query or {})

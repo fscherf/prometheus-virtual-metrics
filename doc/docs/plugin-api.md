@@ -128,27 +128,27 @@ class ExamplePlugin:
                 'value2.2',
             ])
 
-    # server hooks
-    def on_startup(self, server):
+    # context hooks
+    def on_startup(self, context):
         """
-        Gets called on server startup.
+        Gets called on startup.
 
-        server (prometheus_virtual_metrics.PrometheusVirtualMetricsServer): prometheus-virtual-metrics server object
+        context (prometheus_virtual_metrics.PrometheusVirtualMetricsContext): prometheus-virtual-metrics context object
         """
 
         pass
 
-    def on_shutdown(self, server):
+    def on_shutdown(self, context):
         """
-        Gets called on server shutdown.
+        Gets called on shutdown.
 
-        server (prometheus_virtual_metrics.PrometheusVirtualMetricsServer): prometheus-virtual-metrics server object
+        context (prometheus_virtual_metrics.PrometheusVirtualMetricsContext): prometheus-virtual-metrics context object
         """
 
         pass
 ```
 
-::: prometheus_virtual_metrics.PrometheusVirtualMetricsServer
+::: prometheus_virtual_metrics.PrometheusVirtualMetricsContext
     handler: python
     options:
       heading_level: 2
