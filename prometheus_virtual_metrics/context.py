@@ -1,7 +1,7 @@
 from time import perf_counter
 import asyncio
 import logging
-import re
+import os
 
 from prometheus_virtual_metrics import default_settings, constants
 from prometheus_virtual_metrics.exceptions import ForbiddenError
@@ -10,8 +10,6 @@ from prometheus_virtual_metrics.response import (
     PROMETHEUS_RESPONSE_TYPE,
     PrometheusResponse,
 )
-
-PROMETHEUS_REQUEST_PATH_RE = re.compile(r'/api/v1/(query|query_range|series|labels|label)')  # NOQA
 
 default_logger = logging.getLogger('prometheus-virtual-metrics')
 
@@ -42,7 +40,32 @@ class PrometheusVirtualMetricsContext:
             path_is_valid (bool): path_is_valid
         """
 
-        return bool(PROMETHEUS_REQUEST_PATH_RE.match(path))
+        # check prefix
+        api_url_prefix = getattr(
+            self.settings,
+            'API_URL_PREFIX',
+            default_settings.API_URL_PREFIX,
+        )
+
+        prefix = os.path.join(
+            '/',
+            api_url_prefix,
+            'api/v1/',
+        )
+
+        if not (path.startswith(prefix) and len(path) > len(prefix)):
+            return False
+
+        # check endpoint
+        endpoint = path[len(prefix):].split('/')[0]
+
+        return endpoint in (
+            'query',
+            'query_range',
+            'series',
+            'labels',
+            'label',
+        )
 
     # plugin management #######################################################
     def discover_plugin_hooks(self):

@@ -2,6 +2,7 @@ import concurrent
 import threading
 import asyncio
 import logging
+import os
 
 from aiohttp.web import Application, AppRunner, TCPSite
 import requests
@@ -169,9 +170,18 @@ class PrometheusVirtualMetricsContext:
             URL (str): URL as string
         """
 
+        if path.startswith('/'):
+            path = path[0:]
+
         host, port = self.app_runner.addresses[0]
 
-        return f'http://{host}:{port}{path}'
+        abs_path = os.path.join(
+            '/',
+            getattr(self.settings, 'API_URL_PREFIX', ''),
+            path,
+        )
+
+        return f'http://{host}:{port}{abs_path}'
 
     def request_metric_names(
             self,
