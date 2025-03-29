@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
-from .state import setup_context, get_context
+from .state import setup_context
 
 
 class PrometheusVirtualMetricsAppConfig(AppConfig):
