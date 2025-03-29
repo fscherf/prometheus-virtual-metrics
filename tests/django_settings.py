@@ -1,3 +1,6 @@
+from django.urls import re_path
+
+from prometheus_virtual_metrics.django_app.views import handle_prometheus_request  # NOQA
 from prometheus_virtual_metrics.plugins import BasicAuthPlugin
 
 # DJANGO
@@ -6,7 +9,10 @@ SECRET_KEY = 'secret'
 USE_TZ = True
 TIME_ZONE = 'UTC'
 ROOT_URLCONF = __name__
-urlpatterns = []
+
+urlpatterns = [
+    re_path(r'api/v1/.*', handle_prometheus_request),
+]
 
 
 # prometheus-virtual-metrics
@@ -30,10 +36,6 @@ class Plugin:
         elif request.query.name_matches('metric_2'):
             raise RuntimeError('This crash is on purpose')
 
-
-MIDDLEWARE = [
-    'prometheus_virtual_metrics.django_app.middlewares.PrometheusVirtualMetricsMiddleware',  # NOQA
-]
 
 INSTALLED_APPS = [
     'prometheus_virtual_metrics.django_app',
