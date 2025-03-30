@@ -1,5 +1,13 @@
 # Changelog
 
+## [v0.4.0 (2025-03-30)](https://github.com/fscherf/prometheus-virtual-metrics/releases/tag/v0.4.0)
+
+### Breaking Changes
+
+- All Django middleware code was ported over to Django view code to address
+  performance issues
+
+
 ## [v0.3.0 (2025-03-28)](https://github.com/fscherf/prometheus-virtual-metrics/releases/tag/v0.3.0)
 
 ### Breaking Changes
